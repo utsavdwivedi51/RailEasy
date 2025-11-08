@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RailEasy — Book Indian Train Tickets</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      --bg:#0b1220;           /* page background */
+      --card:#121a2a;         /* card background */
+      --muted:#8aa0bf;        /* muted text */
+      --text:#e6eefc;         /* primary text */
+      --brand:#4f8cff;        /* brand color */
+      --brand-2:#22d3ee;      /* gradient accent */
+      --ok:#22c55e;           /* success */
+      --warn:#f59e0b;         /* warning */
+      --err:#ef4444;          /* error */
+      --ring: 0 0 0 3px rgba(79,140,255,.25);
+      --radius: 18px;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:Inter,system-ui,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+    a{color:inherit;text-decoration:none}
+    button{font:inherit}
+
+    /* Layout */
+    .container{max-width:1100px;margin:0 auto;padding:22px}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+    .logo{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.4px}
+    .logo-dot{width:12px;height:12px;border-radius:50%;background:linear-gradient(135deg,var(--brand),var(--brand-2));display:inline-block}
+    .nav-actions{display:flex;gap:10px}
+    .btn{border:0;border-radius:12px;background:#1b2740;color:var(--text);padding:10px 14px;cursor:pointer;transition:.2s}
+    .btn:hover{transform:translateY(-1px);filter:brightness(1.05)}
+    .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand-2));}
+
+    /* Hero */
+    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:26px;align-items:center;padding:10px 0 28px}
+    .hero-card{background:linear-gradient(180deg,#0f172a 0%, #0c1426 100%);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;border:1px solid rgba(255,255,255,.05)}
+    .headline{font-size:30px;line-height:1.15;margin:0 0 10px}
+    .sub{color:var(--muted);margin:0 0 18px}
+
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    .field{display:flex;flex-direction:column;gap:6px}
+    label{font-size:12px;color:var(--muted)}
+    input,select{background:#0f172a;border:1px solid rgba(255,255,255,.08);color:var(--text);padding:12px;border-radius:10px;outline:none}
+    input:focus,select:focus{box-shadow:var(--ring);border-color:var(--brand)}
+
+    .row{display:flex;gap:12px;align-items:end}
+
+    .pill{display:inline-flex;gap:8px;align-items:center;background:#0f172a;border:1px solid rgba(255,255,255,.08);padding:8px 12px;border-radius:999px;color:#cfe1ff;font-size:12px}
+
+    /* Results */
+    .section{margin-top:24px}
+    .section h3{margin:0 0 12px;font-size:18px}
+    .card{background:var(--card);border:1px solid rgba(255,255,255,.06);border-radius:16px;box-shadow:var(--shadow);padding:14px}
+    .result{display:grid;grid-template-columns:2fr 1.2fr 1.2fr .8fr .8fr auto;gap:10px;align-items:center;border:1px dashed rgba(255,255,255,.08);padding:12px;border-radius:12px;margin-bottom:10px}
+    .result .name{font-weight:600}
+    .badge{font-size:11px;border:1px solid rgba(255,255,255,.1);background:#0f172a;padding:4px 8px;border-radius:999px;color:#cfe1ff}
+
+    /* Steps */
+    .steps{display:flex;gap:8px;margin:10px 0 14px}
+    .step{flex:1;background:#0f172a;border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:8px 10px;font-size:12px;color:#cfe1ff;display:flex;align-items:center;gap:8px}
+    .step.active{background:linear-gradient(135deg,rgba(79,140,255,.25),rgba(34,211,238,.25));border-color:transparent}
+
+    /* Booking summary */
+    .summary{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+
+    /* Table */
+    table{width:100%;border-collapse:separate;border-spacing:0 8px}
+    td,th{padding:10px 12px;text-align:left}
+    th{font-size:12px;color:#a8c3ff}
+    tr{background:#0f172a;border:1px solid rgba(255,255,255,.08)}
+    tr td:first-child, tr th:first-child{border-top-left-radius:10px;border-bottom-left-radius:10px}
+    tr td:last-child, tr th:last-child{border-top-right-radius:10px;border-bottom-right-radius:10px}
+
+    /* Modal */
+    .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;align-items:center;justify-content:center;padding:20px;z-index:50}
+    .modal.open{display:flex}
+    .modal-card{background:var(--card);border:1px solid rgba(255,255,255,.08);border-radius:16px;box-shadow:var(--shadow);max-width:540px;width:100%;padding:18px}
+
+    /* Footer */
+    .foot{margin:40px 0 10px;color:#93a8cc;font-size:12px}
+    .foot a{color:#cfe1ff;text-decoration:underline}
+
+    /* Responsive */
+    @media (max-width: 960px){
+      .hero{grid-template-columns:1fr}
+      .grid{grid-template-columns:1fr 1fr}
+      .result{grid-template-columns:1.5fr 1fr 1fr .8fr .8fr auto}
+      .summary{grid-template-columns:1fr}
+    }
+    @media (max-width: 560px){
+      .grid{grid-template-columns:1fr}
+      .result{grid-template-columns:1fr 1fr;grid-auto-rows:auto}
+      .row{flex-direction:column;align-items:stretch}
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- NAV -->
+    <nav class="nav">
+      <div class="logo">
+        <span class="logo-dot"></span>
+        <span>RailEasy</span>
+      </div>
+      <div class="nav-actions">
+        <button class="btn" id="myBookingsBtn">My Bookings</button>
+        <a class="btn primary" href="https://www.irctc.co.in/nget/train-search" target="_blank" rel="noopener">Go to IRCTC</a>
+      </div>
+    </nav>
+
+    <!-- HERO / SEARCH -->
+    <div class="hero">
+      <div class="hero-card">
+        <p class="pill">IRCTC Payment Hand-off · Official checkout happens on IRCTC</p>
+        <h1 class="headline">Search trains, check schedules & book — then pay on IRCTC</h1>
+        <p class="sub">This is a demo booking interface. Availability & payments are finalized on the official IRCTC website.</p>
+
+        <form id="searchForm">
+          <div class="grid">
+            <div class="field">
+              <label for="from">From</label>
+              <input id="from" name="from" list="stations" placeholder="e.g., NDLS (New Delhi)" required />
+            </div>
+            <div class="field">
+              <label for="to">To</label>
+              <input id="to" name="to" list="stations" placeholder="e.g., LKO (Lucknow)" required />
+            </div>
+            <div class="field">
+              <label for="date">Journey Date</label>
+              <input id="date" name="date" type="date" required />
+            </div>
+            <div class="field">
+              <label for="class">Class</label>
+              <select id="class" name="class" required>
+                <option value="SL">Sleeper (SL)</option>
+                <option value="3A">AC 3 Tier (3A)</option>
+                <option value="2A">AC 2 Tier (2A)</option>
+                <option value="1A">AC First (1A)</option>
+                <option value="CC">AC Chair Car (CC)</option>
+              </select>
+            </div>
+          </div>
+          <div class="row" style="margin-top:12px">
+            <div class="field" style="flex:1">
+              <label for="quota">Quota</label>
+              <select id="quota" name="quota">
+                <option value="GN">General</option>
+                <option value="LD">Ladies</option>
+                <option value="TQ">Tatkal</option>
+                <option value="PT">Premium Tatkal</option>
+              </select>
+            </div>
+            <button class="btn primary" type="submit" style="height:44px;min-width:160px">Search Trains</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="hero-card">
+        <h3 style="margin:0 0 8px">Live Notices</h3>
+        <ul style="margin:0;padding-left:18px;color:#cfe1ff">
+          <li>Demo site for educational use — not affiliated with IRCTC.</li>
+          <li>Seat availability & concessions are indicative only.</li>
+          <li>Final fare, berth allotment & boarding rules apply on IRCTC.</li>
+        </ul>
+        <div style="margin-top:14px" class="pill">Tip: Use station codes (NDLS, MAS, SBC) for faster search.</div>
+      </div>
+    </div>
+
+    <!-- RESULTS -->
+    <section class="section" id="resultsSection" style="display:none">
+      <div class="steps">
+        <div class="step active" data-step="1">1 · Select Train</div>
+        <div class="step" data-step="2">2 · Travellers</div>
+        <div class="step" data-step="3">3 · Review & Pay (IRCTC)</div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-top:0">Available Trains</h3>
+        <div id="results"></div>
+      </div>
+    </section>
+
+    <!-- BOOKING / SUMMARY -->
+    <section class="section" id="bookingSection" style="display:none">
+      <div class="card">
+        <h3 style="margin-top:0">Enter Traveller Details</h3>
+        <div class="summary">
+          <div>
+            <table>
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Full Name</th>
+                  <th>Age</th>
+                  <th>Gender</th>
+                  <th>Berth Pref</th>
+                </tr>
+              </thead>
+              <tbody id="passengers"></tbody>
+            </table>
+            <button class="btn" id="addPassenger">Add Passenger</button>
+          </div>
+          <div>
+            <div class="pill" id="selTrainPill">No train selected</div>
+            <div style="height:8px"></div>
+            <div class="card" style="background:#0f172a">
+              <h4 style="margin:0 0 6px">Fare Summary</h4>
+              <div id="fareBreakup" style="color:#cfe1ff;font-size:14px"></div>
+            </div>
+            <div style="height:10px"></div>
+            <button class="btn primary" id="reviewBtn" disabled>Review & Proceed</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- REVIEW / PAYMENT -->
+    <section class="section" id="reviewSection" style="display:none">
+      <div class="card">
+        <h3 style="margin-top:0">Review & Pay on IRCTC</h3>
+        <p class="sub" style="margin-top:-4px">Confirm details below. When you click Pay, you'll be redirected to <strong>IRCTC</strong> to complete payment securely.</p>
+        <div id="reviewBlock"></div>
+        <div class="row" style="margin-top:10px">
+          <button class="btn" id="backToTravellers">Back</button>
+          <button class="btn primary" id="payOnIrctc">Pay on IRCTC</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- MODAL: BOOKINGS LIST -->
+    <div class="modal" id="bookingsModal" aria-hidden="true" role="dialog">
+      <div class="modal-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+          <h3 style="margin:0">My Bookings</h3>
+          <button class="btn" id="closeBookings">Close</button>
+        </div>
+        <div id="bookingsList" style="max-height:60vh;overflow:auto"></div>
+      </div>
+    </div>
+
+    <footer class="foot">
+      <div>© <span id="year"></span> RailEasy — Educational demo. Not affiliated with IRCTC. Data is mocked for UI only. Use <a href="https://www.irctc.co.in/nget/train-search" target="_blank" rel="noopener">irctc.co.in</a> for real bookings.</div>
+    </footer>
+  </div>
+
+  <!-- data lists -->
+  <datalist id="stations"></datalist>
+
+  <script>
+    // -------------- MOCK DATA --------------
+    const STATIONS = [
+      { code: 'NDLS', name: 'New Delhi' },
+      { code: 'NDLS', name: 'New Delhi' },
+      { code: 'LKO', name: 'Lucknow' },
+      { code: 'CNB', name: 'Kanpur Central' },
+      { code: 'BCT', name: 'Mumbai Central' },
+      { code: 'MMCT', name: 'Mumbai Central (MMCT)' },
+      { code: 'CSMT', name: 'Mumbai CSMT' },
+      { code: 'HWH', name: 'Howrah Jn' },
+      { code: 'SDAH', name: 'Sealdah' },
+      { code: 'MAS', name: 'Chennai Central' },
+      { code: 'SBC', name: 'KSR Bengaluru' },
+      { code: 'PNBE', name: 'Patna Jn' },
+      { code: 'BBS', name: 'Bhubaneswar' },
+      { code: 'BZA', name: 'Vijayawada' },
+      { code: 'ADI', name: 'Ahmedabad Jn' },
+      { code: 'RJPB', name: 'Rajendra Nagar (Patna)' },
+      { code: 'JAT', name: 'Jammu Tawi' },
+    ];
+
+    const MOCK_TRAINS = [
+      {
+        number: '12004',
+        name: 'Shatabdi Express',
+        depart: '06:10', arrive: '12:45', duration: '6h 35m',
+        from: 'NDLS', to: 'LKO', days: 'S M T W T F S',
+        classes: { CC: 945, 2A: 1580, 3A: 1240, SL: 520 },
+        available: { CC: 24, 2A: 10, 3A: 42, SL: 120 }
+      },
+      {
+        number: '12430',
+        name: 'Rajdhani Express',
+        depart: '19:00', arrive: '23:35', duration: '4h 35m',
+        from: 'NDLS', to: 'LKO', days: 'S M T W T F S',
+        classes: { 1A: 2390, 2A: 1590, 3A: 1120 },
+        available: { 1A: 6, 2A: 18, 3A: 30 }
+      },
+      {
+        number: '14208',
+        name: 'Padmavat Exp',
+        depart: '22:05', arrive: '05:30', duration: '7h 25m',
+        from: 'NDLS', to: 'LKO', days: 'S M T W T F S',
+        classes: { SL: 340, 3A: 820 },
+        available: { SL: 200, 3A: 50 }
+      },
+    ];
+
+    // -------------- UTIL --------------
+    const qs = s => document.querySelector(s);
+    const qsa = s => Array.from(document.querySelectorAll(s));
+    const formatINR = n => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR' }).format(n);
+    const todayISO = () => new Date().toISOString().slice(0,10);
+
+    // Station helpers — accept code or name (e.g., "NDLS", "New Delhi", "NDLS (New Delhi)")
+    function stationCodeFromInput(raw){
+      if(!raw) return null;
+      const val = String(raw).trim();
+      // If user typed "ABC (Name)" or "ABC — Name"
+      const m = val.match(/^([A-Z]{2,5})\s*(\(|—|-|\s)/i);
+      if(m) return m[1].toUpperCase();
+      // If it's a plain code
+      const c = val.toUpperCase();
+      const byCode = STATIONS.find(s => s.code === c);
+      if(byCode) return byCode.code;
+      // Try match by name ignoring case
+      const byName = STATIONS.find(s => s.name.toLowerCase() === val.toLowerCase());
+      if(byName) return byName.code;
+      // Fuzzy startsWith on name
+      const fuzzy = STATIONS.find(s => s.name.toLowerCase().startsWith(val.toLowerCase()));
+      if(fuzzy) return fuzzy.code;
+      return null;
+    }
+
+    // Populate station datalist
+    const dl = qs('#stations');
+    STATIONS.forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = `${s.code} — ${s.name}`; // friendlier value; parser will extract code
+      opt.label = `${s.name}`;
+      dl.appendChild(opt);
+    });
+      opt.value = `${s.code}`;
+      opt.label = `${s.name}`;
+      dl.appendChild(opt);
+    });
+
+    // Date min today
+    qs('#date').min = todayISO();
+    qs('#date').value = todayISO();
+
+    // Footer year
+    qs('#year').textContent = new Date().getFullYear();
+
+    // -------------- SEARCH FLOW --------------
+    let searchState = { from:null, to:null, date:null, cls:'SL', quota:'GN' };
+    let selectedTrain = null;
+    let passengers = [];
+
+    qs('#searchForm').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      // Resolve station codes robustly
+      const fromInput = qs('#from').value;
+      const toInput = qs('#to').value;
+      const from = stationCodeFromInput(fromInput);
+      const to = stationCodeFromInput(toInput);
+      const date = qs('#date').value;
+      const cls = qs('#class').value;
+      const quota = qs('#quota').value;
+      if(!from || !to || !date){
+        alert('Please enter valid From/To stations (use code or name) and a date.');
+        return;
+      }
+      searchState = { from, to, date, cls, quota };
+      // UI updates
+      setStep(1);
+      qs('#resultsSection').style.display = 'block';
+      qs('#bookingSection').style.display = 'none';
+      qs('#reviewSection').style.display = 'none';
+      // Simple loader
+      const wrap = qs('#results');
+      wrap.innerHTML = '<div class="pill">Searching trains…</div>';
+      // Simulate async search (replace with real API later)
+      setTimeout(()=>{ renderResults(); }, 250);
+      window.scrollTo({ top: document.body.scrollHeight/4, behavior: 'smooth' });
+    });
+
+    function renderResults()(){
+      const { from, to, cls } = searchState;
+      const matches = MOCK_TRAINS.filter(t => t.from===from && t.to===to && t.classes[cls]!==undefined);
+      const wrap = qs('#results');
+      wrap.innerHTML = '';
+      if(matches.length===0){
+        wrap.innerHTML = `<div class="pill">No direct trains in mock data for ${from} → ${to}. Try NDLS → LKO.</div>`;
+        return;
+      }
+      matches.forEach(t => {
+        const fare = t.classes[cls];
+        const left = t.available[cls] ?? 0;
+        const el = document.createElement('div');
+        el.className = 'result';
+        el.innerHTML = `
+          <div>
+            <div class=\"name\">${t.number} · ${t.name}</div>
+            <div class=\"badge\">${t.days}</div>
+          </div>
+          <div><div style=\"font-weight:600\">${t.depart}</div><div class=\"sub\">Departure</div></div>
+          <div><div style=\"font-weight:600\">${t.arrive}</div><div class=\"sub\">Arrival</div></div>
+          <div><div>${t.duration}</div><div class=\"sub\">Duration</div></div>
+          <div><div>${formatINR(fare)}</div><div class=\"sub\">Base Fare (${searchState.cls})</div></div>
+          <div style=\"display:flex;gap:8px;align-items:center;justify-content:end\">
+            <span class=\"badge\">${left>0? left+' seats':'WL'}</span>
+            <button class=\"btn\" data-track>Track</button>
+            <button class=\"btn primary\" data-select>Select</button>
+          </div>
+        `;
+        // Select handler
+        el.querySelector('[data-select]').addEventListener('click', ()=>{
+          selectedTrain = t;
+          passengers = []; // reset
+          qs('#passengers').innerHTML = '';
+          addPassengerRow(); // at least one
+          updateFare();
+          qs('#selTrainPill').textContent = `${t.number} ${t.name} · ${t.depart} → ${t.arrive}`;
+          setStep(2);
+          qs('#bookingSection').style.display = 'block';
+          window.scrollTo({ top: document.body.scrollHeight/2, behavior: 'smooth' });
+        });
+        // Track in Where is My Train (best-effort)
+        el.querySelector('[data-track]').addEventListener('click', ()=>{
+          const play = 'https://play.google.com/store/apps/details?id=com.whereismytrain.android';
+          const isAndroid = /Android/i.test(navigator.userAgent);
+          if(isAndroid){
+            // Try Android intent deep link (may or may not be supported by the app)
+            const intent = `intent://track?train=${t.number}&from=${searchState.from}&to=${searchState.to}#Intent;scheme=whereismytrain;package=com.whereismytrain.android;end`;
+            // Fallback to Play Store after a short delay
+            const timer = setTimeout(()=>{ window.open(play,'_blank'); }, 400);
+            window.location.href = intent;
+            setTimeout(()=> clearTimeout(timer), 1200);
+          } else {
+            // Non-Android — open the App Store page if on iOS, else the Play page in a new tab
+            const isiOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+            const appStore = 'https://apps.apple.com/in/app/where-is-my-train-by-google/id6738965857';
+            window.open(isiOS ? appStore : play, '_blank');
+          }
+        });
+        wrap.appendChild(el);
+      });
+    }
+
+    // -------------- PASSENGERS --------------
+    function passengerRow(idx){
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${idx+1}</td>
+        <td><input required placeholder="Name"/></td>
+        <td><input required type="number" min="1" max="120" placeholder="Age" style="width:90px"></td>
+        <td>
+          <select>
+            <option value="M">M</option>
+            <option value="F">F</option>
+            <option value="O">Other</option>
+          </select>
+        </td>
+        <td>
+          <select>
+            <option value="No Pref">No Pref</option>
+            <option>Lower</option>
+            <option>Middle</option>
+            <option>Upper</option>
+            <option>Side Lower</option>
+            <option>Side Upper</option>
+          </select>
+        </td>
+      `;
+      return tr;
+    }
+
+    function addPassengerRow(){
+      const tbody = qs('#passengers');
+      const idx = tbody.children.length;
+      const row = passengerRow(idx);
+      tbody.appendChild(row);
+      passengers.push({ name:'', age:'', gender:'M', berth:'No Pref' });
+      syncPassengers();
+    }
+
+    qs('#addPassenger').addEventListener('click', ()=>{
+      addPassengerRow();
+      updateFare();
+    });
+
+    function syncPassengers(){
+      const rows = Array.from(qs('#passengers').children);
+      rows.forEach((tr, i) => {
+        const [nameInput, ageInput] = tr.querySelectorAll('input');
+        const [genderSel, berthSel] = tr.querySelectorAll('select');
+        // Init values
+        if(!nameInput.dataset.bound){
+          nameInput.addEventListener('input', ()=>{passengers[i].name=nameInput.value;checkReviewEnable();});
+          ageInput.addEventListener('input', ()=>{passengers[i].age=ageInput.value;checkReviewEnable();});
+          genderSel.addEventListener('change', ()=>{passengers[i].gender=genderSel.value});
+          berthSel.addEventListener('change', ()=>{passengers[i].berth=berthSel.value});
+          nameInput.dataset.bound = ageInput.dataset.bound = true;
+        }
+      });
+    }
+
+    function updateFare(){
+      if(!selectedTrain) return;
+      const base = selectedTrain.classes[searchState.cls];
+      const n = qs('#passengers').children.length || 1;
+      const baseFare = base*n;
+      const gst = Math.round(baseFare*0.05);
+      const conv = 30*n; // mock convenience
+      const total = baseFare + gst + conv;
+      qs('#fareBreakup').innerHTML = `
+        <div style="display:flex;justify-content:space-between"><span>Base Fare × ${n}</span><strong>${formatINR(baseFare)}</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>GST (5%)</span><strong>${formatINR(gst)}</strong></div>
+        <div style="display:flex;justify-content:space-between"><span>Convenience Fee</span><strong>${formatINR(conv)}</strong></div>
+        <hr style="border-color:rgba(255,255,255,.08)">
+        <div style="display:flex;justify-content:space-between;font-size:18px"><span>Total</span><strong>${formatINR(total)}</strong></div>
+      `;
+    }
+
+    function checkReviewEnable(){
+      const valid = passengers.length>0 && passengers.every(p=>p.name && p.age);
+      qs('#reviewBtn').disabled = !valid;
+    }
+
+    qs('#reviewBtn').addEventListener('click', ()=>{
+      // collect latest values
+      syncPassengers();
+      if(!selectedTrain){ alert('Select a train first'); return; }
+      if(passengers.length===0 || passengers.some(p=>!p.name || !p.age)){
+        alert('Please fill all passenger details.'); return;
+      }
+      setStep(3);
+      qs('#reviewSection').style.display = 'block';
+      renderReview();
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    });
+
+    // -------------- REVIEW + IRCTC HANDOFF --------------
+    function renderReview(){
+      const block = qs('#reviewBlock');
+      const n = passengers.length;
+      const base = selectedTrain.classes[searchState.cls];
+      const baseFare = base*n; const gst = Math.round(baseFare*0.05); const conv = 30*n; const total = baseFare+gst+conv;
+      block.innerHTML = `
+        <div class="card" style="background:#0f172a;margin-bottom:10px">
+          <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr .8fr;gap:8px;align-items:center">
+            <div><strong>${selectedTrain.number} ${selectedTrain.name}</strong><div class="sub">${searchState.from} → ${searchState.to} · ${searchState.date}</div></div>
+            <div><strong>${selectedTrain.depart}</strong><div class="sub">Departure</div></div>
+            <div><strong>${selectedTrain.arrive}</strong><div class="sub">Arrival</div></div>
+            <div><span class="badge">Class ${searchState.cls}</span></div>
+          </div>
+        </div>
+        <h4 style="margin:8px 0 6px">Passengers (${n})</h4>
+        <table>
+          <thead><tr><th>#</th><th>Name</th><th>Age</th><th>Gender</th><th>Berth</th></tr></thead>
+          <tbody>
+            ${passengers.map((p,i)=>`<tr><td>${i+1}</td><td>${p.name}</td><td>${p.age}</td><td>${p.gender}</td><td>${p.berth}</td></tr>`).join('')}
+          </tbody>
+        </table>
+        <div class="card" style="background:#0f172a;margin-top:10px">
+          <div style="display:flex;justify-content:space-between"><span>Total Payable</span><strong>${formatINR(total)}</strong></div>
+          <div class="sub">Final fare, discounts, and berth allocation are computed on IRCTC at checkout.</div>
+        </div>
+      `;
+    }
+
+    qs('#backToTravellers').addEventListener('click', ()=>{
+      setStep(2); qs('#reviewSection').style.display='none'; window.scrollTo({ top: document.body.scrollHeight/2, behavior:'smooth'});
+    });
+
+    qs('#payOnIrctc').addEventListener('click', ()=>{
+      // Save booking locally for demo purposes
+      const booking = {
+        id: 'BK'+Date.now(),
+        train: selectedTrain,
+        search: {...searchState},
+        passengers: [...passengers],
+        createdAt: new Date().toISOString()
+      };
+      const all = JSON.parse(localStorage.getItem('bookings')||'[]');
+      all.unshift(booking);
+      localStorage.setItem('bookings', JSON.stringify(all));
+
+      // Redirect user to IRCTC site (train search). Real payment requires IRCTC partner APIs.
+      const url = new URL('https://www.irctc.co.in/nget/train-search');
+      // Optionally include query-like hints for the user (IRCTC ignores unknown params)
+      url.searchParams.set('from', searchState.from);
+      url.searchParams.set('to', searchState.to);
+      url.searchParams.set('date', searchState.date);
+      window.location.href = url.toString();
+    });
+
+    // -------------- STEP UI --------------
+    function setStep(n){
+      qsa('.step').forEach(step=>{
+        step.classList.toggle('active', Number(step.dataset.step)===n);
+      });
+    }
+
+    // -------------- BOOKINGS MODAL --------------
+    const modal = qs('#bookingsModal');
+    qs('#myBookingsBtn').addEventListener('click', ()=>{
+      renderBookings();
+      modal.classList.add('open'); modal.setAttribute('aria-hidden','false');
+    });
+    qs('#closeBookings').addEventListener('click', ()=>{
+      modal.classList.remove('open'); modal.setAttribute('aria-hidden','true');
+    });
+
+    function renderBookings(){
+      const list = qs('#bookingsList');
+      const all = JSON.parse(localStorage.getItem('bookings')||'[]');
+      if(all.length===0){ list.innerHTML = '<div class="pill">No saved demo bookings yet.</div>'; return; }
+      list.innerHTML = all.map(b=>{
+        const n = b.passengers.length;
+        return `
+          <div class="result" style="grid-template-columns:1.5fr 1fr 1fr .8fr auto">
+            <div>
+              <div class="name">${b.train.number} ${b.train.name}</div>
+              <div class="sub">${b.search.from} → ${b.search.to} · ${b.search.date}</div>
+            </div>
+            <div><strong>${n}</strong><div class="sub">Passengers</div></div>
+            <div><span class="badge">Class ${b.search.cls}</span></div>
+            <div><div class="sub">${new Date(b.createdAt).toLocaleString()}</div></div>
+            <div style="display:flex;gap:8px;justify-content:end">
+              <button class="btn" data-id="${b.id}" data-act="view">View</button>
+              <button class="btn" data-id="${b.id}" data-act="delete">Delete</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Wire buttons
+      list.querySelectorAll('button').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const id = btn.dataset.id; const act = btn.dataset.act;
+          const all = JSON.parse(localStorage.getItem('bookings')||'[]');
+          const idx = all.findIndex(b=>b.id===id);
+          if(idx===-1) return;
+          if(act==='delete'){
+            all.splice(idx,1); localStorage.setItem('bookings', JSON.stringify(all)); renderBookings();
+          } else if(act==='view'){
+            const b = all[idx];
+            selectedTrain = b.train; searchState = b.search; passengers = b.passengers;
+            // Fill UI
+            qs('#from').value = searchState.from; qs('#to').value=searchState.to; qs('#date').value=searchState.date; qs('#class').value=searchState.cls; qs('#quota').value=searchState.quota;
+            renderResults(); qs('#resultsSection').style.display='block';
+            // Rebuild passenger table
+            const tbody = qs('#passengers'); tbody.innerHTML='';
+            passengers.forEach(()=> addPassengerRow());
+            // Restore names/ages
+            Array.from(tbody.children).forEach((tr,i)=>{
+              tr.querySelectorAll('input')[0].value = passengers[i].name;
+              tr.querySelectorAll('input')[1].value = passengers[i].age;
+              tr.querySelectorAll('select')[0].value = passengers[i].gender;
+              tr.querySelectorAll('select')[1].value = passengers[i].berth;
+            });
+            qs('#selTrainPill').textContent = `${selectedTrain.number} ${selectedTrain.name} · ${selectedTrain.depart} → ${selectedTrain.arrive}`;
+            updateFare(); checkReviewEnable();
+            setStep(2); qs('#bookingSection').style.display='block'; modal.classList.remove('open');
+            window.scrollTo({ top: document.body.scrollHeight/2, behavior: 'smooth' });
+          }
+        })
+      })
+    }
+
+  </script>
+</body>
+</html>
